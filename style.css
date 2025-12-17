@@ -1,0 +1,42 @@
+/* ...existing code... */
+
+.participants-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+.participants-section h3 {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.participants-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.participants-list li {
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-left: 4px solid #0969da;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.participants-list li:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left-color: #0550ae;
+}
+
+.participants-list li::before {
+  content: "✓ ";
+  color: #0969da;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
