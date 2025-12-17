@@ -45,6 +45,108 @@
       <p>&copy; 2023 Mergington High School</p>
     </footer>
 
-    <script src="app.js"></script>
+    <script>
+      window.addEventListener('DOMContentLoaded', async () => {
+        const res = await fetch('/activities');
+        const activities = await res.json();
+
+        const list = document.getElementById('activities-list');
+        const select = document.getElementById('activity');
+        list.innerHTML = '';
+
+        for (const [name, info] of Object.entries(activities)) {
+          // Card
+          const card = document.createElement('div');
+          card.className = 'activity-card';
+          card.innerHTML = `
+            <h4>${name}</h4>
+            <p>${info.description}</p>
+            <p><strong>Schedule:</strong> ${info.schedule}</p>
+            <p><strong>Spots:</strong> ${info.participants.length} / ${info.max_participants}</p>
+          `;
+
+          // Participants section
+          const participantsHtml = info.participants && info.participants.length
+            ? `<div class="participants">
+                 <h5>Participants</h5>
+                 <ul class="participants-list">
+                   ${info.participants.map(p => `<li>${p}</li>`).join('')}
+                 </ul>
+               </div>`
+            : `<div class="participants">
+                 <h5>Participants</h5>
+                 <p class="info">No participants yet</p>
+               </div>`;
+
+          card.innerHTML += participantsHtml;
+          list.appendChild(card);
+
+          // Option for select
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        }
+
+        // Signup handling
+        const form = document.getElementById('signup-form');
+        const message = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          message.className = 'hidden';
+
+          const email = document.getElementById('email').value.trim();
+          const activity = document.getElementById('activity').value;
+
+          if (!activity) {
+            message.textContent = 'Please select an activity';
+            message.className = 'message error';
+            return;
+          }
+
+          try {
+            const res2 = await fetch(`/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`, {
+              method: 'POST'
+            });
+            const data = await res2.json();
+
+            if (res2.ok) {
+              message.textContent = data.message;
+              message.className = 'message success';
+              // Update participants list in DOM
+              const cards = document.querySelectorAll('.activity-card');
+              cards.forEach(card => {
+                if (card.querySelector('h4').textContent === activity) {
+                  const ul = card.querySelector('.participants-list');
+                  if (ul) {
+                    const li = document.createElement('li');
+                    li.textContent = email;
+                    ul.appendChild(li);
+                  } else {
+                    // replace "No participants yet" with list
+                    const partDiv = card.querySelector('.participants');
+                    partDiv.innerHTML = `<h5>Participants</h5><ul class="participants-list"><li>${email}</li></ul>`;
+                  }
+                  // update spots line (simple approach)
+                  const spotsP = Array.from(card.querySelectorAll('p')).find(p => p.textContent.startsWith('Spots:') || p.innerHTML.includes('Spots:'));
+                  if (spotsP) {
+                    const max = /\/\s*(\d+)/.exec(spotsP.textContent);
+                    const current = card.querySelectorAll('.participants-list li').length;
+                    if (max) spotsP.innerHTML = `<strong>Spots:</strong> ${current} / ${max[1]}`;
+                  }
+                }
+              });
+            } else {
+              message.textContent = data.detail || 'Error signing up';
+              message.className = 'message error';
+            }
+          } catch (err) {
+            message.textContent = 'Network error';
+            message.className = 'message error';
+          }
+        });
+      });
+    </script>
   </body>
 </html>
